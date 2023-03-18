@@ -10,6 +10,7 @@
 #include <KLocalizedString>
 #include <KPluginFactory>
 
+#include <qdir.h>
 #include <systemstats/AggregateSensor.h>
 #include <systemstats/SensorContainer.h>
 #include <systemstats/SensorObject.h>
@@ -20,6 +21,8 @@
 #include <QProcess>
 #include <QStandardPaths>
 #include <QDir>
+#include <QFileSystemWatcher>
+#include <QDirIterator>
 
 struct Coroutine
 {
@@ -52,7 +55,7 @@ class Script : public KSysGuard::SensorObject
     friend Request;
 
 public:
-    Script(const QString &scriptPath, const QString &scriptName, KSysGuard::SensorContainer *parent);
+    Script(const QString &scriptPath, const QString &scriptRelPath, const QString &scriptName, KSysGuard::SensorContainer *parent);
     void update();
 private:
     Coroutine initSensors(std::coroutine_handle<> *h);
@@ -74,16 +77,26 @@ class ScriptsPlugin : public KSysGuard::SensorPlugin
 
 public:
     ScriptsPlugin(QObject *parent, const QVariantList &args);
+
     QString providerName() const override
     {
         return QStringLiteral("scripts");
     };
 
+    const QString scriptDirPath = QDir::homePath() + "/.local/share/ksystemstats-scripts";
+
     void update() override;
+
+private slots:
+    void directoryChanged(const QString& path);
 
 private:
     KSysGuard::SensorContainer *container;
     QHash<QString, Script*> scripts;
+    QFileSystemWatcher scriptDirWatcher;
+
+    void initScripts();
+    void deinitScripts();
 };
 
 #endif

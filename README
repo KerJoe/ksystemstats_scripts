@@ -32,10 +32,10 @@ $ cmake --build .
 $ setsid ksystemstats --replace
 ```
 
-Script location
----------------
+Scripts folder
+--------------
 
-Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is created after first launch of the script). Adding scripts into subfolders is also supported.
+Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is created after first launch of the plugin). Adding scripts into subfolders is also supported.
 
 ```
 ~/.local/share/ksystemstats-scripts/
@@ -43,6 +43,8 @@ Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is cr
 └── folder
     └── example.py
 ```
+
+You can update script list and restart modyfied ones by using touching the folder (`touch ~/.local/share/ksystemstats-scripts/`)
 
 Example
 -------
@@ -77,7 +79,7 @@ For extra examples see `example.py` and `example.sh`.
 Protocol
 --------
 
-The plugin communicates with scripts via stdin and stdout by issuing commands with arguments separated by tabs and ending in a newline, e.g. `"sensor_name\tvalue\n"`. All commands (except `?`) are optional.
+The plugin communicates with scripts via stdin and stdout by issuing commands with arguments separated by tabs and ending in a newline, e.g. `"sensor_name\tvalue\n"`. All commands are optional.
 
 ### `?` command
 
@@ -158,10 +160,10 @@ A name of the unit of the sensor value
 | Hz       | Hertz (123.1 kHz) |
 | Timestamp| Amount of seconds since boot (Yesterday at 12:34) |
 | s        | Seconds (123 123s) |
-| Time     | Time (e.g. 34:12:03) |
+| Time     | Time (34:12:03) |
 | Ticks    | Number of kernel ticks (0:20:31 (if `CONFIG_HZ` is 100)) |
 | C        | Degrees celsius (123 123°C) |
-| b/s      | Bit per second (120.2 Kbps) |
+| b/s      | Bits per second (120.2 Kbps) |
 | dBm      | Decibel-milliwatts (123 123 dBm) |
 | %        | Percent (123 123%) |
 | rate     | Rate of change (123 123 s⁻¹) |

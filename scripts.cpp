@@ -5,6 +5,9 @@
 */
 
 #include "scripts.h"
+#include <qalgorithms.h>
+#include <qfileinfo.h>
+#include <qfilesystemwatcher.h>
 
 K_PLUGIN_CLASS_WITH_JSON(ScriptsPlugin, "metadata.json")
 
@@ -20,7 +23,7 @@ QString Request::await_resume() noexcept
     return script->scriptReply;
 }
 
-Script::Script(const QString &scriptPath, const QString &scriptName, KSysGuard::SensorContainer *parent) : KSysGuard::SensorObject(scriptName, scriptName, parent)
+Script::Script(const QString &scriptPath, const QString &scriptRelPath, const QString &scriptName, KSysGuard::SensorContainer *parent) : KSysGuard::SensorObject(scriptRelPath, scriptName, parent)
 {
     name = scriptName;
     qDebug() << "Script:" << scriptName << "Path:" << scriptPath;
@@ -141,17 +144,28 @@ ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : Sensor
 {
     container = new KSysGuard::SensorContainer("scripts", i18nc("@title", "Scripts"), this);
 
-    auto scriptDirPaths = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("ksystemstats-scripts"), QStandardPaths::LocateDirectory);
-    for (const auto& scriptDirPath : qAsConst(scriptDirPaths))
+    scriptDirWatcher.addPath(scriptDirPath);
+    connect(&scriptDirWatcher, &QFileSystemWatcher::directoryChanged, this, &ScriptsPlugin::directoryChanged);
+
+    initScripts();
+}
+
+void ScriptsPlugin::initScripts()
+{
+    auto scriptPathItr = QDirIterator(scriptDirPath, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+    while (scriptPathItr.hasNext())
     {
-        auto scriptPaths = QDir(scriptDirPath).entryList(QDir::NoDotAndDotDot | QDir::Files); // TODO: Recursive dirs
-        for (const auto& scriptFileName : qAsConst(scriptPaths))
-        {
-            auto scriptPath = QDir(scriptDirPath).filePath(scriptFileName);
-            auto script = new Script(scriptPath, scriptFileName, container);
-            scripts.insert(scriptFileName, script);
-        }
+        auto scriptAbsPath = scriptPathItr.next();
+        auto scriptRelPath = QDir(scriptDirPath).relativeFilePath(scriptAbsPath);
+        auto scriptName = QFileInfo(scriptAbsPath).fileName();
+        scripts.insert(scriptRelPath, new Script(scriptAbsPath, scriptRelPath, scriptName, container));
     }
+}
+
+void ScriptsPlugin::deinitScripts()
+{
+    qDeleteAll(scripts.begin(), scripts.end());
+    scripts.clear();
 }
 
 void ScriptsPlugin::update()
@@ -159,6 +173,16 @@ void ScriptsPlugin::update()
     qDebug() << "Update called";
     for (auto& script : qAsConst(scripts))
         script->update();
+}
+
+void ScriptsPlugin::directoryChanged(const QString& path)
+{
+    Q_UNUSED(path)
+
+    qDebug() << "Directory changed";
+
+    deinitScripts();
+    initScripts();
 }
 
 #include "scripts.moc"
