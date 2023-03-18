@@ -14,11 +14,11 @@ $ git clone https://github.com/KerJoe/ksystemstats-scripts.git
 $ cd ksystemstats-scripts
 ```
 
-2. Create build directory and compile.
+2. Create build directory and compile for release.
 ```
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ cmake --build .
 ```
 
