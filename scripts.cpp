@@ -80,8 +80,8 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         { "description", "" },
         { "min", "" },
         { "max", "" },
-        { "variant_type", "" },
         { "unit", "" },
+        { "variant_type", "" },
     };
     const QMap<QString, KSysGuard::MetricPrefix> Str2Prefix
     {
@@ -156,7 +156,7 @@ ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : Sensor
 {
     container = new KSysGuard::SensorContainer("scripts", i18nc("@title", "Scripts"), this);
 
-    auto scriptDirPaths = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("kssscripts"), QStandardPaths::LocateDirectory);
+    auto scriptDirPaths = QStandardPaths::locateAll(QStandardPaths::GenericDataLocation, QStringLiteral("ksystemstats-scripts"), QStandardPaths::LocateDirectory);
     for (const auto& scriptDirPath : qAsConst(scriptDirPaths))
     {
         auto scriptPaths = QDir(scriptDirPath).entryList(QDir::NoDotAndDotDot | QDir::Files); // TODO: Recursive dirs
