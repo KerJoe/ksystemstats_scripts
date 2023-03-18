@@ -12,7 +12,7 @@ while :; do
             echo $value
             ;;
         "gpu_fan_rpm${tab}unit")
-            echo "-rpm"
+            echo "rpm"
             ;;
         *)
             echo
