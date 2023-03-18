@@ -10,7 +10,6 @@
 #include <KLocalizedString>
 #include <KPluginFactory>
 
-#include <qdir.h>
 #include <systemstats/AggregateSensor.h>
 #include <systemstats/SensorContainer.h>
 #include <systemstats/SensorObject.h>
@@ -19,10 +18,83 @@
 #include <coroutine>
 
 #include <QProcess>
-#include <QStandardPaths>
 #include <QDir>
 #include <QFileSystemWatcher>
 #include <QDirIterator>
+
+
+class Script;
+
+
+class ScriptsPlugin : public KSysGuard::SensorPlugin
+{
+    Q_OBJECT
+
+public:
+    ScriptsPlugin(QObject *parent, const QVariantList &args);
+
+    const QString scriptDirPath = QDir::homePath() + "/.local/share/ksystemstats-scripts";
+
+    QString providerName() const override { return "scripts"; };
+    void update() override;
+
+private:
+    KSysGuard::SensorContainer *container;
+    QHash<QString, Script*> scripts;
+    QFileSystemWatcher scriptDirWatcher;
+
+    void initScripts();
+    void deinitScripts();
+
+private slots:
+    void directoryChanged(const QString& path);
+};
+
+
+struct Coroutine;
+struct Request;
+
+class Script : public KSysGuard::SensorObject
+{
+    Q_OBJECT
+
+    friend Request;
+
+public:
+    Script(const QString &scriptPath, const QString &scriptRelPath, const QString &scriptName, KSysGuard::SensorContainer *parent);
+    ~Script();
+
+    void update();
+    void restart();
+
+private:
+    QProcess scriptProcess;
+    QList<KSysGuard::SensorProperty*> sensors;
+    QString scriptPath;
+
+    QString scriptReply;
+
+    Coroutine initSensors(std::coroutine_handle<> *h);
+    Coroutine updateSensors(std::coroutine_handle<> *h);
+    std::coroutine_handle<> initSensorsH, updateSensorsH;
+    bool initSensorAct = false, updateSensorsAct = false;
+
+private slots:
+    void stateChanged(QProcess::ProcessState newState);
+    void readyReadStandardOutput();
+};
+
+
+struct Request
+{
+  std::coroutine_handle<> *hp;
+  Script* script;
+  Request* request(QString request0, QString request1="");
+
+  constexpr bool await_ready() const noexcept { return false; }
+  void await_suspend(std::coroutine_handle<> h) { *hp = h; }
+  QString await_resume() noexcept;
+};
 
 struct Coroutine
 {
@@ -34,69 +106,6 @@ struct Coroutine
     void return_void() { }
     void unhandled_exception() {}
   };
-};
-
-class Script;
-
-struct Request
-{
-  std::coroutine_handle<> *hp; Script* script;
-  Request* request(QString request0, QString request1="");
-
-  constexpr bool await_ready() const noexcept { return false; }
-  void await_suspend(std::coroutine_handle<> h) { *hp = h; }
-  QString await_resume() noexcept;
-};
-
-class Script : public KSysGuard::SensorObject
-{
-    Q_OBJECT
-
-    friend Request;
-
-public:
-    Script(const QString &scriptPath, const QString &scriptRelPath, const QString &scriptName, KSysGuard::SensorContainer *parent);
-    void update();
-private:
-    Coroutine initSensors(std::coroutine_handle<> *h);
-    Coroutine updateSensors(std::coroutine_handle<> *h);
-    QProcess scriptProcess;
-    QString name;
-    QString scriptReply;
-    QList<KSysGuard::SensorProperty*> sensors;
-    std::coroutine_handle<> initSensorsH, updateSensorsH;
-    bool initialized = false, updateFinished = true;
-private slots:
-    void readyReadStandardOutput();
-    void stateChanged(QProcess::ProcessState newState);
-};
-
-class ScriptsPlugin : public KSysGuard::SensorPlugin
-{
-    Q_OBJECT
-
-public:
-    ScriptsPlugin(QObject *parent, const QVariantList &args);
-
-    QString providerName() const override
-    {
-        return QStringLiteral("scripts");
-    };
-
-    const QString scriptDirPath = QDir::homePath() + "/.local/share/ksystemstats-scripts";
-
-    void update() override;
-
-private slots:
-    void directoryChanged(const QString& path);
-
-private:
-    KSysGuard::SensorContainer *container;
-    QHash<QString, Script*> scripts;
-    QFileSystemWatcher scriptDirWatcher;
-
-    void initScripts();
-    void deinitScripts();
 };
 
 #endif

@@ -5,73 +5,125 @@
 */
 
 #include "scripts.h"
-#include <qalgorithms.h>
-#include <qfileinfo.h>
-#include <qfilesystemwatcher.h>
+#include <qglobal.h>
 
 K_PLUGIN_CLASS_WITH_JSON(ScriptsPlugin, "metadata.json")
 
-Request* Request::request(QString request0, QString request1)
+
+ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : SensorPlugin(parent, args)
 {
-    qDebug() << "Requested:" << request0 + (request1 == "" ? QString("") : "\t" + request1);
-    script->scriptProcess.write((request0 + (request1 == "" ? QString("") : "\t" + request1) + "\n").toLocal8Bit());
-    return this;
+    container = new KSysGuard::SensorContainer("scripts", i18nc("@title", "Scripts"), this);
+
+    // Create folder if it doesn't exist
+    QDir scriptDir(scriptDirPath);
+    if (!scriptDir.exists()) scriptDir.mkpath(".");
+
+    // Create scripts directory watcher, which will reload all scripts on change
+    scriptDirWatcher.addPath(scriptDirPath);
+    connect(&scriptDirWatcher, &QFileSystemWatcher::directoryChanged, this, &ScriptsPlugin::directoryChanged);
+
+    initScripts();
 }
 
-QString Request::await_resume() noexcept
+void ScriptsPlugin::initScripts()
 {
-    return script->scriptReply;
+    auto scriptPathItr = QDirIterator(scriptDirPath, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+     QList<QString> addedScripts;
+    while (scriptPathItr.hasNext())
+    {
+        auto scriptAbsPath = scriptPathItr.next();
+        auto scriptRelPath = QDir(scriptDirPath).relativeFilePath(scriptAbsPath); // Create relative path for hierarchical view in system monitor
+        auto scriptName = QFileInfo(scriptAbsPath).fileName();
+        addedScripts.append(scriptRelPath);
+        if (!scripts.contains(scriptRelPath)) // If loading new
+            scripts.insert(scriptRelPath, new Script(scriptAbsPath, scriptRelPath, scriptName, container));
+        else // If reloading
+            scripts[scriptRelPath]->restart();
+    }
+    // Ignore deleted for now
+    //
+    // for (const auto& script : scripts.keys())
+    //     if (!addedScripts.contains(script))
+    //     {
+    //         qDebug() << "Deleting" << script;
+    //         delete scripts[script];
+    //         scripts.remove(script);
+    //     }
 }
 
-Script::Script(const QString &scriptPath, const QString &scriptRelPath, const QString &scriptName, KSysGuard::SensorContainer *parent) : KSysGuard::SensorObject(scriptRelPath, scriptName, parent)
+void ScriptsPlugin::deinitScripts()
 {
-    name = scriptName;
-    qDebug() << "Script:" << scriptName << "Path:" << scriptPath;
+    qDeleteAll(scripts.begin(), scripts.end());
+    scripts.clear();
+}
 
-    auto n = new KSysGuard::SensorProperty("name", i18nc("@title", "Name"), name, this);
-    n->setVariantType(QVariant::String);
+void ScriptsPlugin::update()
+{
+    qDebug() << "Update called";
+    for (auto& script : qAsConst(scripts))
+        script->update();
+}
+
+void ScriptsPlugin::directoryChanged(const QString& path)
+{
+    Q_UNUSED(path)
+    qDebug() << "Directory changed";
+    initScripts(); // Reload scripts
+}
+
+
+Script::Script(const QString &scriptAbsPath, const QString &scriptRelPath, const QString &scriptName, KSysGuard::SensorContainer *parent) : KSysGuard::SensorObject(scriptRelPath, scriptName, parent)
+{
+    scriptPath = scriptAbsPath;
+
+    qDebug() << "Script:" << this->name() << "Path:" << scriptPath;
+
+    auto n = new KSysGuard::SensorProperty("name", i18nc("@title", "Name"), this->name(), this);
+    n->setVariantType(QVariant::String); // Set default type of sensor value
 
     connect(&scriptProcess, &QProcess::readyReadStandardOutput, this, &Script::readyReadStandardOutput);
     connect(&scriptProcess, &QProcess::stateChanged, this, &Script::stateChanged);
     scriptProcess.start(scriptPath, {});
 }
 
-void Script::readyReadStandardOutput()
+Script::~Script()
 {
-    scriptReply = scriptProcess.readAll().trimmed();
-    qDebug() << "Recieved: " << scriptReply;
-    if (!initialized)
-        initSensorsH();
-    else if (!updateFinished)
-        updateSensorsH();
+    scriptProcess.close();
+    if (initSensorAct) initSensorsH.destroy();
+    if (updateSensorsAct) updateSensorsH.destroy();
+}
+
+void Script::restart()
+{
+    scriptProcess.close();
+    if (initSensorAct) initSensorsH.destroy();
+    if (updateSensorsAct) updateSensorsH.destroy();
+    initSensorAct = false; updateSensorsAct = false;
+    scriptProcess.start(scriptPath, {});
 }
 
 void Script::stateChanged(QProcess::ProcessState newState)
 {
-    qDebug() << "Script:" << name << "State:" << newState;
+    qDebug() << "Script:" << this->name() << "State:" << newState;
     if (newState == QProcess::ProcessState::Running)
         initSensors(&initSensorsH);
 }
 
-void Script::update()
+void Script::readyReadStandardOutput()
 {
-    if (updateFinished)
-        updateSensors(&updateSensorsH);
-}
+    scriptReply = scriptProcess.readAll().trimmed(); // Read all of script output and remove newline
+    qDebug() << "Received: " << scriptReply;
 
-Coroutine Script::updateSensors(std::coroutine_handle<> *h)
-{
-    updateFinished = false;
-
-    Request r{h, this};
-    for (auto& sensor : qAsConst(sensors))
-        sensor->setValue(QVariant(co_await *r.request(sensor->id(), "value")));
-
-    updateFinished = true;
+    if (initSensorAct) // If not initialized, continue init coroutine
+        initSensorsH();
+    else if (updateSensorsAct) // If initialized and update in progress, continue update coroutine
+        updateSensorsH();
 }
 
 Coroutine Script::initSensors(std::coroutine_handle<> *h)
 {
+    initSensorAct = true;
+
     Request r{h, this};
 
     QMap<QString, QString> sensorParameters
@@ -137,52 +189,38 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
 
         sensors.append(sensor);
     }
-    initialized = true;
+
+    initSensorAct = false;
 }
 
-ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : SensorPlugin(parent, args)
+void Script::update()
 {
-    container = new KSysGuard::SensorContainer("scripts", i18nc("@title", "Scripts"), this);
-
-    scriptDirWatcher.addPath(scriptDirPath);
-    connect(&scriptDirWatcher, &QFileSystemWatcher::directoryChanged, this, &ScriptsPlugin::directoryChanged);
-
-    initScripts();
+    if (!updateSensorsAct) // If not already running update
+        updateSensors(&updateSensorsH);
 }
 
-void ScriptsPlugin::initScripts()
+Coroutine Script::updateSensors(std::coroutine_handle<> *h)
 {
-    auto scriptPathItr = QDirIterator(scriptDirPath, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
-    while (scriptPathItr.hasNext())
-    {
-        auto scriptAbsPath = scriptPathItr.next();
-        auto scriptRelPath = QDir(scriptDirPath).relativeFilePath(scriptAbsPath);
-        auto scriptName = QFileInfo(scriptAbsPath).fileName();
-        scripts.insert(scriptRelPath, new Script(scriptAbsPath, scriptRelPath, scriptName, container));
-    }
+    updateSensorsAct = true;
+
+    Request r{h, this};
+    for (auto& sensor : qAsConst(sensors))
+        sensor->setValue(QVariant(co_await *r.request(sensor->id(), "value")));
+
+    updateSensorsAct = false;
 }
 
-void ScriptsPlugin::deinitScripts()
+
+Request* Request::request(QString request0, QString request1)
 {
-    qDeleteAll(scripts.begin(), scripts.end());
-    scripts.clear();
+    qDebug() << "Requested:" << request0 + (request1 == "" ? QString("") : "\t" + request1);
+    script->scriptProcess.write((request0 + (request1 == "" ? QString("") : "\t" + request1) + "\n").toLocal8Bit());
+    return this;
 }
 
-void ScriptsPlugin::update()
+QString Request::await_resume() noexcept
 {
-    qDebug() << "Update called";
-    for (auto& script : qAsConst(scripts))
-        script->update();
-}
-
-void ScriptsPlugin::directoryChanged(const QString& path)
-{
-    Q_UNUSED(path)
-
-    qDebug() << "Directory changed";
-
-    deinitScripts();
-    initScripts();
+    return script->scriptReply;
 }
 
 #include "scripts.moc"

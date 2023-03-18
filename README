@@ -3,18 +3,18 @@ KSystemStats Scripts
 
 Simple way to create custom sensors for KDE System Monitor via text streams.
 
-<!-- Image Here -->
+![Sample](sample.png)
 
-Building and instalation
+Building and installation
 ------------------------
 
-1. Clone repo
+1. Clone repo.
 ```
 $ git clone https://github.com/KerJoe/ksystemstats-scripts.git
 $ cd ksystemstats-scripts
 ```
 
-2. Create build directory and compile
+2. Create build directory and compile.
 ```
 $ mkdir build
 $ cd build
@@ -22,12 +22,12 @@ $ cmake ..
 $ cmake --build .
 ```
 
-3. Install into `/usr/lib/qt/plugins/ksystemstats/`
+3. Install into `/usr/lib/qt/plugins/ksystemstats/`.
 ```
 # cmake --install
 ```
 
-4. Restart ksystemstats for changes to take effect
+4. Restart ksystemstats for changes to take effect.
 ```
 $ setsid ksystemstats --replace
 ```
@@ -44,7 +44,9 @@ Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is cr
     └── example.py
 ```
 
-You can update script list and restart modyfied ones by using touching the folder (`touch ~/.local/share/ksystemstats-scripts/`)
+You can update script list and restart modified ones by using touching the folder (`touch ~/.local/share/ksystemstats-scripts/`).
+
+**NOTE:** Some changes require refreshing the system sensor by, for example, changing the display style, adding/removing sensors or reopening the system monitor.
 
 Example
 -------
@@ -91,63 +93,63 @@ The plugins starts by requesting a list of sensors using a `"?"` command, the sc
 ```
 
 ### `value` command
-A current value of the sensor
+A current value of the sensor.
 ```
 > sensor_1⇥value↵
 < 63.8↵
 ```
 
 ### `initial_value` command
-A starting value of the sensor
+A starting value of the sensor.
 ```
 > sensor_1⇥value↵
 < 50↵
 ```
 
 ### `name` command
-A human reabable name of the sensor
+A human readable name of the sensor.
 ```
 > sensor_1⇥name↵
 < Sensor number one↵
 ```
 
 ### `short_name` command
-A name displayed when there's not enough space for the full name
+A name displayed when there's not enough space for the full name.
 ```
 > sensor_1⇥short_name↵
 < Sensor #1↵
 ```
 
 ### `prefix` command
-A prefix before sensor name, e.g. "Unit 1 Sensor number one"
+A prefix before sensor name, e.g. "Unit 1 Sensor number one".
 ```
 > sensor_1⇥prefix↵
 < Unit 1↵
 ```
 
 ### `description` command
-A sensor description
+A sensor description.
 ```
 > sensor_1⇥description↵
 < The most sensitive sensible sensor↵
 ```
 
 ### `min` command
-A minimum value the sensor value can take (values are not clipped, it is a hint for graphs.)
+A minimum value the sensor value can take (values are not clipped, it is a hint for graphs).
 ```
 > sensor_1⇥min↵
 < -100↵
 ```
 
 ### `max` command
-A maximum value the sensor value can take (values are not clipped, it is a hint for graphs.)
+A maximum value the sensor value can take (values are not clipped, it is a hint for graphs).
 ```
 > sensor_1⇥max↵
 < 100↵
 ```
 
 ### `unit` command
-A name of the unit of the sensor value
+A name of the unit of the sensor value.
 ```
 > sensor_1⇥unit↵
 < B↵
@@ -174,7 +176,7 @@ A name of the unit of the sensor value
 | A        | Ampere  (123 123 A)|
 
 ### `variant_type` command
-A name of QVariant type of sensor value
+A name of QVariant type of sensor value.
 ```
 > sensor_1⇥variant_type
 < double
