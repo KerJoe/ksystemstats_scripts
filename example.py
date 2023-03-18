@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+
 import random
 import subprocess
 
 while True:
-    req = input().strip().split("\t")    
+    req = input().strip().split("\t")
     if req[0] == "?":
         print("gpu_fan_speed\tfrandom")
     elif req[0] == "gpu_fan_speed":
@@ -11,7 +12,7 @@ while True:
             stdout = subprocess.run(["nvidia-smi", "-q"], check=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
             for string in stdout.split("\n"):
                 if "Fan Speed" in string:
-                    print(string.split(":")[1].replace("%", "").replace(" ", ""))                    
+                    print(string.split(":")[1].replace("%", "").replace(" ", ""))
                     break
             else:
                 print()
@@ -20,7 +21,7 @@ while True:
         elif (req[1] == "max"):
             print(100)
         elif (req[1] == "unit"):
-            print("-%")
+            print("%")
         else:
             print()
     elif req[0] == "frandom":
@@ -30,4 +31,3 @@ while True:
             print()
     else:
         print()
-

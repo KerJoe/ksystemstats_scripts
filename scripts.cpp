@@ -83,16 +83,6 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         { "unit", "" },
         { "variant_type", "" },
     };
-    const QMap<QString, KSysGuard::MetricPrefix> Str2Prefix
-    {
-        { "-", KSysGuard::MetricPrefixUnity },
-        { "K", KSysGuard::MetricPrefixKilo },
-        { "M", KSysGuard::MetricPrefixMega },
-        { "G", KSysGuard::MetricPrefixGiga },
-        { "T", KSysGuard::MetricPrefixTera },
-        { "P", KSysGuard::MetricPrefixPeta },
-        { "!", KSysGuard::MetricPrefixAutoAdjust },
-    };
     const QMap<QString, KSysGuard::Unit> Str2Unit
     {
         { "-", KSysGuard::UnitNone },
@@ -107,7 +97,7 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         { "b/s", KSysGuard::UnitBitRate },
         { "dBm", KSysGuard::UnitDecibelMilliWatts },
         { "%", KSysGuard::UnitPercent },
-        { "Rate", KSysGuard::UnitRate },
+        { "rate", KSysGuard::UnitRate },
         { "rpm", KSysGuard::UnitRpm },
         { "V", KSysGuard::UnitVolt },
         { "W", KSysGuard::UnitWatt },
@@ -136,15 +126,10 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
             QVariant::nameToType(sensorParameters["variant_type"].toLocal8Bit().constData()));
         if (sensorParameters["unit"] != "")
         {
-            auto unitPrefix = KSysGuard::MetricPrefixAutoAdjust;
-            if (Str2Prefix.contains(sensorParameters["unit"].left(1)))
-                unitPrefix = Str2Prefix[sensorParameters["unit"].left(1)];
-
             auto unit = KSysGuard::UnitInvalid;
-            if (Str2Unit.contains(sensorParameters["unit"].mid(1)))
-                unit = Str2Unit[sensorParameters["unit"].mid(1)];
-
-            sensor->setUnit((KSysGuard::Unit)((int)unitPrefix + (int)unit));
+            if (Str2Unit.contains(sensorParameters["unit"]))
+                unit = Str2Unit[sensorParameters["unit"]];
+            sensor->setUnit(unit);
         }
 
         sensors.append(sensor);
