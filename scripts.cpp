@@ -5,7 +5,10 @@
 */
 
 #include "scripts.h"
+#include <qdebug.h>
+#include <qdir.h>
 #include <qglobal.h>
+#include <qvariant.h>
 
 K_PLUGIN_CLASS_WITH_JSON(ScriptsPlugin, "metadata.json")
 
@@ -27,7 +30,7 @@ ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : Sensor
 
 void ScriptsPlugin::initScripts()
 {
-    auto scriptPathItr = QDirIterator(scriptDirPath, QDir::NoDotAndDotDot | QDir::Files, QDirIterator::Subdirectories);
+    auto scriptPathItr = QDirIterator(scriptDirPath, QDir::NoDotAndDotDot | QDir::Files | QDir::Executable, QDirIterator::Subdirectories);
      QList<QString> addedScripts;
     while (scriptPathItr.hasNext())
     {
@@ -76,10 +79,10 @@ Script::Script(const QString &scriptAbsPath, const QString &scriptRelPath, const
 {
     scriptPath = scriptAbsPath;
 
-    qDebug() << "Script:" << this->name() << "Path:" << scriptPath;
+    qDebug() << "Script:" << this->id() << "Path:" << scriptPath;
 
     auto n = new KSysGuard::SensorProperty("name", i18nc("@title", "Name"), this->name(), this);
-    n->setVariantType(QVariant::String); // Set default type of sensor value
+    n->setVariantType(QVariant::String);
 
     connect(&scriptProcess, &QProcess::readyReadStandardOutput, this, &Script::readyReadStandardOutput);
     connect(&scriptProcess, &QProcess::stateChanged, this, &Script::stateChanged);
@@ -104,7 +107,7 @@ void Script::restart()
 
 void Script::stateChanged(QProcess::ProcessState newState)
 {
-    qDebug() << "Script:" << this->name() << "State:" << newState;
+    qDebug() << "Script:" << this->id() << "State:" << newState;
     if (newState == QProcess::ProcessState::Running)
         initSensors(&initSensorsH);
 }
@@ -112,7 +115,7 @@ void Script::stateChanged(QProcess::ProcessState newState)
 void Script::readyReadStandardOutput()
 {
     scriptReply = scriptProcess.readAll().trimmed(); // Read all of script output and remove newline
-    qDebug() << "Received: " << scriptReply;
+    qDebug() << "Script:" << this->id()  << "Received: " << scriptReply;
 
     if (initSensorAct) // If not initialized, continue init coroutine
         initSensorsH();
@@ -137,6 +140,7 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         { "max", "" },
         { "unit", "" },
         { "variant_type", "" },
+        { "value", "" },
     };
     const QMap<QString, KSysGuard::Unit> Str2Unit
     {
@@ -167,6 +171,7 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         for (const auto& sensorParameter : sensorParameters.keys())
             sensorParameters[sensorParameter] = co_await *r.request(sensorName, sensorParameter);
 
+        auto variant_type = QVariant::Type::String;
         auto sensor = new KSysGuard::SensorProperty(
             sensorName,
             sensorParameters["name"] == "" ? sensorName : sensorParameters["name"],
@@ -177,8 +182,6 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         if (sensorParameters["description"] != "") sensor->setDescription(sensorParameters["description"]);
         if (sensorParameters["min"] != "") sensor->setMin(sensorParameters["min"].toDouble());
         if (sensorParameters["max"] != "") sensor->setMax(sensorParameters["max"].toDouble());
-        if (sensorParameters["variant_type"] != "" ) sensor->setVariantType(
-            QVariant::nameToType(sensorParameters["variant_type"].toLocal8Bit().constData()));
         if (sensorParameters["unit"] != "")
         {
             auto unit = KSysGuard::UnitInvalid;
@@ -186,6 +189,17 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
                 unit = Str2Unit[sensorParameters["unit"]];
             sensor->setUnit(unit);
         }
+        if (sensorParameters["variant_type"] != "")
+        {
+            variant_type = QVariant::nameToType(sensorParameters["variant_type"].toLocal8Bit().constData());
+            sensor->setVariantType(variant_type);
+        }
+
+        // Implicitly convert QVariant to variant_type, because ksystemsensor seems to ignore setVariantType
+        QVariant value(sensorParameters["value"]);
+        if (!value.convert(variant_type))
+            qCritical() << "Script:" << this->id() << "Sensor:" << sensor->id() << "Value:" << sensorParameters["value"] << "can't be converted to" << variant_type;
+        sensor->setValue(value);
 
         sensors.append(sensor);
     }
@@ -195,7 +209,7 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
 
 void Script::update()
 {
-    if (!updateSensorsAct) // If not already running update
+    if (!updateSensorsAct && !initSensorAct) // If not already running update
         updateSensors(&updateSensorsH);
 }
 
@@ -205,7 +219,13 @@ Coroutine Script::updateSensors(std::coroutine_handle<> *h)
 
     Request r{h, this};
     for (auto& sensor : qAsConst(sensors))
-        sensor->setValue(QVariant(co_await *r.request(sensor->id(), "value")));
+    {
+        auto value_str = co_await *r.request(sensor->id(), "value");
+        QVariant value(value_str);
+        if (!value.convert(sensor->value().type()))
+            qCritical() << "Script:" << this->id() << "Sensor:" << sensor->id() << "Value:" << value_str << "can't be converted to" << sensor->value().type();
+        sensor->setValue(value); // If convert failed value is zero
+    }
 
     updateSensorsAct = false;
 }
@@ -213,7 +233,7 @@ Coroutine Script::updateSensors(std::coroutine_handle<> *h)
 
 Request* Request::request(QString request0, QString request1)
 {
-    qDebug() << "Requested:" << request0 + (request1 == "" ? QString("") : "\t" + request1);
+    qDebug() << "Script:" << script->id() << "Requested:" << request0 + (request1 == "" ? QString("") : "\t" + request1);
     script->scriptProcess.write((request0 + (request1 == "" ? QString("") : "\t" + request1) + "\n").toLocal8Bit());
     return this;
 }

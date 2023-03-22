@@ -35,7 +35,7 @@ $ setsid ksystemstats --replace
 Scripts folder
 --------------
 
-Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is created after first launch of the plugin). Adding scripts into subfolders is also supported.
+Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is created after first launch of the plugin). Adding scripts into subfolders is also supported. Scripts are enabled by setting the executable flag (`chmod +x script`) and disabled by removing it.
 
 ```
 ~/.local/share/ksystemstats-scripts/
