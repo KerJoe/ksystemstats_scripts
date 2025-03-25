@@ -3,46 +3,25 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VERSION "6.3.80")
+set(PROJECT_VERSION "2.0")
 project(ksystemstats_scripts VERSION ${PROJECT_VERSION})
 
-set(PROJECT_DEP_VERSION "6.2.90")
+set(KSYSGUARD_MIN_VERSION "6.2.90")
 set(QT_MIN_VERSION "6.7.0")
 set(KF6_MIN_VERSION "6.10.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 
 find_package(ECM ${KF6_MIN_VERSION} REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH}  ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(QT_MAJOR_VERSION 6)
+set(QT_MAJOR_VERSION 6) # ?
 
-include(CheckIncludeFiles)
 include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
-include(KDEClangFormat)
-include(ECMAddTests)
-include(ECMInstallIcons)
-include(FeatureSummary)
-include(ECMConfiguredInstall)
-include(ECMGenerateDBusServiceFile)
-include(ECMDeprecationSettings)
-include(ECMQtDeclareLoggingCategory)
-include(ECMSetupVersion)
 
-find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS Core Test)
-find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS CoreAddons Solid KIO Crash)
-find_package(KSysGuard ${PROJECT_DEP_VERSION} REQUIRED)
-
-add_definitions(-DQT_NO_URL_CAST_FROM_STRING)
-add_definitions(-DQT_USE_QSTRINGBUILDER)
-
-ecm_setup_version(PROJECT VARIABLE_PREFIX KSYSTEMSTATS
-                  VERSION_HEADER ${CMAKE_BINARY_DIR}/version.h
-                  )
-
-ecm_set_disabled_deprecation_versions(QT 5.15.2
-    KF 5.101
-)
+find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS Core)
+find_package(KF6 ${KF6_MIN_VERSION} REQUIRED COMPONENTS CoreAddons I18n)
+find_package(KSysGuard ${KSYSGUARD_MIN_VERSION} REQUIRED)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)

@@ -2,12 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "scripts.h"
-#include <qdebug.h>
-#include <qdir.h>
-#include <qglobal.h>
-#include <qvariant.h>
-#include <qtimer.h>
-#include <QEventLoop>
 
 K_PLUGIN_CLASS_WITH_JSON(ScriptsPlugin, "metadata.json")
 
@@ -26,10 +20,8 @@ ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : Sensor
 
     initScripts();
 
-    for (Script* script: scripts)
-    {
+    for (const auto& script: std::as_const(scripts))
         script->waitInit();
-    }
 }
 
 void ScriptsPlugin::initScripts()
@@ -67,7 +59,7 @@ void ScriptsPlugin::deinitScripts()
 void ScriptsPlugin::update()
 {
     qDebug() << "Update called";
-    for (auto& script : qAsConst(scripts))
+    for (const auto& script : std::as_const(scripts))
         script->update();
 }
 
@@ -122,7 +114,7 @@ bool Script::waitInit()
         readyReadStandardOutput();
     }
 
-    qDebug() << "END";
+    qDebug() << "Sequential script initialisation finished";
 
     return true;
 }
@@ -191,12 +183,12 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
 
     auto sensorNames = (co_await *r.request("?")).split("\t");
 
-    for (const auto& sensorName : qAsConst(sensorNames))
+    for (const auto& sensorName : std::as_const(sensorNames))
     {
         for (const auto& sensorParameter : sensorParameters.keys())
             sensorParameters[sensorParameter] = co_await *r.request(sensorName, sensorParameter);
 
-        auto variant_type = QVariant::Type::String;
+        auto variant_type = QVariant::String;
         auto sensor = new KSysGuard::SensorProperty(
             sensorName,
             sensorParameters["name"] == "" ? sensorName : sensorParameters["name"],
@@ -243,7 +235,7 @@ Coroutine Script::updateSensors(std::coroutine_handle<> *h)
     updateSensorsAct = true;
 
     Request r{h, this};
-    for (auto& sensor : qAsConst(sensors))
+    for (const auto& sensor : std::as_const(sensors))
     {
         auto value_str = co_await *r.request(sensor->id(), "value");
         QVariant value(value_str);
@@ -267,5 +259,6 @@ QString Request::await_resume() noexcept
 {
     return script->scriptReply;
 }
+
 
 #include "scripts.moc"

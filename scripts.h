@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2023-2025 KerJoe <2002morozik@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef SCRIPTS_H
-#define SCRIPTS_H
+#ifndef KSYSTEMSTATS_SCRIPTS_H
+#define KSYSTEMSTATS_SCRIPTS_H
 
 #include <KLocalizedString>
 #include <KPluginFactory>
@@ -19,9 +19,7 @@
 #include <QFileSystemWatcher>
 #include <QDirIterator>
 
-
 class Script;
-
 
 class ScriptsPlugin : public KSysGuard::SensorPlugin
 {
@@ -46,7 +44,6 @@ private:
 private slots:
     void directoryChanged(const QString& path);
 };
-
 
 struct Coroutine;
 struct Request;
@@ -102,7 +99,7 @@ struct Coroutine
     std::suspend_never initial_suspend() { return {}; }
     std::suspend_never final_suspend() noexcept { return {}; }
     void return_void() { }
-    void unhandled_exception() {}
+    void unhandled_exception() { }
   };
 };
 
