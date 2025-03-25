@@ -16,20 +16,18 @@ $ cd ksystemstats-scripts
 
 2. Create build directory and compile for release.
 ```
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
-$ cmake --build .
+$ cmake -DCMAKE_BUILD_TYPE=Release -B build .
+$ cmake --build build
 ```
 
-3. Install into `/usr/lib/qt/plugins/ksystemstats/`.
+3. Install into `/usr/lib/qt6/plugins/ksystemstats/`.
 ```
-# cmake --install
+# cmake --install build
 ```
 
 4. Restart ksystemstats for changes to take effect.
 ```
-$ setsid ksystemstats --replace
+$ systemctl --user restart plasma-ksystemstats.service
 ```
 
 Scripts folder
@@ -109,7 +107,7 @@ A starting value of the sensor.
 ```
 
 ### `name` command
-A human readable name of the sensor.
+A human-readable name of the sensor.
 ```
 > sensor_1⇥name↵
 < Sensor number one↵
