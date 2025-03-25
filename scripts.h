@@ -66,6 +66,7 @@ public:
 
     void update();
     void restart();
+    bool waitInit();
 
 private:
     QProcess scriptProcess;

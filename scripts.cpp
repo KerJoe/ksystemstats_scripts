@@ -9,6 +9,8 @@
 #include <qdir.h>
 #include <qglobal.h>
 #include <qvariant.h>
+#include <qtimer.h>
+#include <QEventLoop>
 
 K_PLUGIN_CLASS_WITH_JSON(ScriptsPlugin, "metadata.json")
 
@@ -26,12 +28,17 @@ ScriptsPlugin::ScriptsPlugin(QObject *parent, const QVariantList &args) : Sensor
     connect(&scriptDirWatcher, &QFileSystemWatcher::directoryChanged, this, &ScriptsPlugin::directoryChanged);
 
     initScripts();
+
+    for (Script* script: scripts)
+    {
+        script->waitInit();
+    }
 }
 
 void ScriptsPlugin::initScripts()
 {
     auto scriptPathItr = QDirIterator(scriptDirPath, QDir::NoDotAndDotDot | QDir::Files | QDir::Executable, QDirIterator::Subdirectories);
-     QList<QString> addedScripts;
+    QList<QString> addedScripts;
     while (scriptPathItr.hasNext())
     {
         auto scriptAbsPath = scriptPathItr.next();
@@ -105,6 +112,24 @@ void Script::restart()
     scriptProcess.start(scriptPath, {});
 }
 
+bool Script::waitInit()
+{
+    if (!scriptProcess.waitForStarted())
+        return false;
+
+
+    while(initSensorAct)
+    {
+        if (!scriptProcess.waitForReadyRead())
+            return false;
+        readyReadStandardOutput();
+    }
+
+    qDebug() << "END";
+
+    return true;
+}
+
 void Script::stateChanged(QProcess::ProcessState newState)
 {
     qDebug() << "Script:" << this->id() << "State:" << newState;
@@ -114,13 +139,16 @@ void Script::stateChanged(QProcess::ProcessState newState)
 
 void Script::readyReadStandardOutput()
 {
-    scriptReply = scriptProcess.readAll().trimmed(); // Read all of script output and remove newline
-    qDebug() << "Script:" << this->id()  << "Received: " << scriptReply;
+    while (scriptProcess.canReadLine())
+    {
+        scriptReply = scriptProcess.readLine().trimmed(); // Read all of script output and remove newline
+        qDebug() << "Script:" << this->id()  << "Received: " << scriptReply;
 
-    if (initSensorAct) // If not initialized, continue init coroutine
-        initSensorsH();
-    else if (updateSensorsAct) // If initialized and update in progress, continue update coroutine
-        updateSensorsH();
+        if (initSensorAct) // If not initialized, continue init coroutine
+            initSensorsH();
+        else if (updateSensorsAct) // If initialized and update in progress, continue update coroutine
+            updateSensorsH();
+    }
 }
 
 Coroutine Script::initSensors(std::coroutine_handle<> *h)
@@ -165,7 +193,7 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
     };
 
     auto sensorNames = (co_await *r.request("?")).split("\t");
-    qDebug() << sensorNames;
+
     for (const auto& sensorName : qAsConst(sensorNames))
     {
         for (const auto& sensorParameter : sensorParameters.keys())
