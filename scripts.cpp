@@ -1,8 +1,5 @@
-/*
-    SPDX-FileCopyrightText: 2023 Mikhail Morozov <2002morozik@gmail.com>
-
-    SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
-*/
+// SPDX-FileCopyrightText: 2023-2025 KerJoe <2002morozik@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "scripts.h"
 #include <qdebug.h>

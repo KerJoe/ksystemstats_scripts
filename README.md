@@ -53,6 +53,8 @@ Example
 
 ```Python
 #!/usr/bin/env python
+# SPDX-FileCopyrightText: 2023-2025 KerJoe <2002morozik@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
 
@@ -181,3 +183,6 @@ A name of QVariant type of sensor value.
 > sensor_1⇥variant_type
 < double
 ```
+
+## License
+The software is released under the GNU General Public License (GPL) which can be found in the file [`LICENSE.txt`](/LICENSE.txt) in the same directory as this file.

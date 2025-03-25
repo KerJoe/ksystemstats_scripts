@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2023-2025 KerJoe <2002morozik@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 tab=$(printf '\t')
 while :; do

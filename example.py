@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# SPDX-FileCopyrightText: 2023-2025 KerJoe <2002morozik@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 import random
 import subprocess

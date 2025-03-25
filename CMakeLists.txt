@@ -1,5 +1,5 @@
-# # SPDX-License-Identifier: BSD-2-Clause
-# # SPDX-FileCopyrightText: 2023 Mikhail Morozov <2002morozik@gmail.com>
+# SPDX-FileCopyrightText: 2023-2025 KerJoe <2002morozik@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.16)
 
