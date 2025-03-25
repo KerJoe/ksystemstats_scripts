@@ -10,7 +10,7 @@ while :; do
             echo "gpu_fan_rpm"
             ;;
         "gpu_fan_rpm${tab}value")
-            value=$(nvidia-settings -q all | grep  -i "Attribute 'GPUCurrentFanSpeedRPM'" | cut -d : -f4 | cut -d . -f1 | cut -c2-)
+            value=$(nvidia-settings -q all | grep  -i "Attribute 'GPUCurrentFanSpeedRPM'" | cut -d : -f3 | cut -d . -f1 | cut -c2-)
             echo $value
             ;;
         "gpu_fan_rpm${tab}unit")
