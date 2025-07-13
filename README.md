@@ -10,8 +10,8 @@ Building and installation
 
 1. Clone repo.
 ```
-$ git clone https://github.com/KerJoe/ksystemstats-scripts.git
-$ cd ksystemstats-scripts
+$ git clone https://github.com/KerJoe/ksystemstats_scripts.git
+$ cd ksystemstats_scripts
 ```
 
 2. Create build directory and compile for release.
