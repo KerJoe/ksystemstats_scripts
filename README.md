@@ -16,7 +16,7 @@ $ cd ksystemstats_scripts
 
 2. Create build directory and compile for release.
 ```
-$ cmake -DCMAKE_BUILD_TYPE=Release -B build .
+$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -B build .
 $ cmake --build build
 ```
 
