@@ -1,0 +1,31 @@
+home_assistant:
+  host: "localhost"           # Home Assistant IP or hostname
+  port: 443                  # Home Assistant port (should be 443)
+  token: "your_long_lived_access_token"  # HA API token
+  ssl: true                   # Use SSL/TLS (true for good installations)
+
+sensors:
+  # Simple sensor - just entity ID
+  living_room_temp:
+    entity: "sensor.living_room_temperature"
+  
+  # Full sensor configuration
+  solar_power:
+    entity: "sensor.solar_power"
+    name: "Solar Power Generation"
+    short_name: "Solar"
+    description: "Current solar power generation from rooftop panels"
+    unit: "kW"                # Override HA unit (optional)
+    min: "0"                  # Minimum value for graphs
+    max: "5000"               # Maximum value for graphs
+    prefix: "House"           # Prefix for display
+    variant_type: "double"    # Data type (double, int, string)
+  
+  # Another example with different settings
+  battery_level:
+    entity: "sensor.phone_battery_level"
+    name: "Phone Battery"
+    min: "0"
+    max: "100"
+    unit: "%"
+
