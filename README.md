@@ -42,7 +42,7 @@ Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is cr
     └── example.py
 ```
 
-You can update script list and restart modified ones by using touching the folder (`touch ~/.local/share/ksystemstats-scripts/`).
+You can update script list and restart modified ones by "touching" the folder (`touch ~/.local/share/ksystemstats-scripts/`).
 
 **NOTE:** Some changes require refreshing the system sensor by, for example, changing the display style, adding/removing sensors or reopening the system monitor.
 
@@ -76,7 +76,7 @@ while True:
 
 ```
 
-For extra examples see `example.py` and `example.sh`.
+For extra examples see `examples/example.py` and `examples/example.sh`.
 
 Protocol
 --------
