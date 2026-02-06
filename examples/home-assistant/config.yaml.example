@@ -9,23 +9,9 @@ sensors:
   living_room_temp:
     entity: "sensor.living_room_temperature"
   
-  # Full sensor configuration
-  solar_power:
-    entity: "sensor.solar_power"
-    name: "Solar Power Generation"
-    short_name: "Solar"
-    description: "Current solar power generation from rooftop panels"
-    unit: "kW"                # Override HA unit (optional)
-    min: "0"                  # Minimum value for graphs
-    max: "5000"               # Maximum value for graphs
-    prefix: "House"           # Prefix for display
-    variant_type: "double"    # Data type (double, int, string)
-  
-  # Another example with different settings
-  battery_level:
-    entity: "sensor.phone_battery_level"
-    name: "Phone Battery"
-    min: "0"
-    max: "100"
-    unit: "%"
+  vision_disk_unused:
+    name: "vision disk"
+    entity: "sensor.vision_qcow2_disk"
+    attribute: "available"
+    unit: "GB"
 
