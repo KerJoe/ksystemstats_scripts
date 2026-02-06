@@ -1,0 +1,23 @@
+home_assistant:
+  host: "localhost"           # Home Assistant IP or hostname
+  port: 443                  # Home Assistant port (should be 443)
+  token: "your_long_lived_access_token"  # HA API token
+  ssl: true                   # Use SSL/TLS (true for good installations)
+  verify_ssl: true
+# ca_path:                    # Optional cert path "/usr/local/share/ca-certificates/ha-cert.crt"
+
+sensors:
+  # Simple sensor - just entity ID
+  living_room_temp:
+    entity: "sensor.living_room_temperature"
+  
+  vision_disk_unused:
+    name: "vision disk"
+    entity: "sensor.vision_qcow2_disk"
+    attribute: "available"
+    unit: "GB"
+
+  hushhush_vpn:
+    name: "vpn location"
+    entity: "sensor.hushush_vpn_location"
+    variant_type: "QString"
