@@ -3,6 +3,8 @@ home_assistant:
   port: 443                  # Home Assistant port (should be 443)
   token: "your_long_lived_access_token"  # HA API token
   ssl: true                   # Use SSL/TLS (true for good installations)
+  verify_ssl: true
+# ca_path:                    # Optional cert path "/usr/local/share/ca-certificates/ha-cert.crt"
 
 sensors:
   # Simple sensor - just entity ID
@@ -15,3 +17,7 @@ sensors:
     attribute: "available"
     unit: "GB"
 
+  hushhush_vpn:
+    name: "vpn location"
+    entity: "sensor.hushush_vpn_location"
+    variant_type: "QString"
