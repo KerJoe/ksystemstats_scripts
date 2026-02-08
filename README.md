@@ -156,6 +156,7 @@ A name of the unit of the sensor value.
 ```
 | Response | Meaning |
 |----------|---------|
+| *        | String (abc def) |
 | -        | No unit (123 123) |
 | B        | Bytes (120.2 KiB) |
 | B/s      | Bytes per second (120.2 KiB/s) |

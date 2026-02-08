@@ -161,6 +161,7 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
     };
     const QMap<QString, KSysGuard::Unit> Str2Unit
     {
+        { "*", KSysGuard::UnitInvalid },
         { "-", KSysGuard::UnitNone },
         { "B", KSysGuard::UnitByte },
         { "B/s", KSysGuard::UnitByteRate },
