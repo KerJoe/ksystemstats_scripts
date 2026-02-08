@@ -1,0 +1,10 @@
+home_assistant:
+  url: "http://homeassistant.lan"
+  token: "qwertyASDF1234567890"
+sensors:
+  next_dawn:
+    entity: "sensor.sun_next_dawn"
+  ups_input_voltage:
+    entity: "sensor.cyberpower_input_voltage"
+    min: 0
+    max: 260
