@@ -68,6 +68,9 @@ void ScriptsPlugin::directoryChanged(const QString& path)
     Q_UNUSED(path)
     qDebug() << "Directory changed";
     initScripts(); // Reload scripts
+
+    for (const auto& script: std::as_const(scripts))
+        script->waitInit();
 }
 
 
