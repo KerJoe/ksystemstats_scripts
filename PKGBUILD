@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 KerJoe <2002morozik@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
 pkgname=ksystemstats_scripts
 pkgver=1.0.0
 pkgrel=1
