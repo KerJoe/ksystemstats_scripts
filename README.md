@@ -8,6 +8,12 @@ Simple way to create custom sensors for KDE System Monitor via text streams.
 Building and installation
 ------------------------
 
+0. Prepare the environment.
+
+To build on Debian Trixie you will need to install these packages: `build-essential git cmake qt6-base-dev libkf6coreaddons-dev libkf6i18n-dev libksysguard-dev extra-cmake-modules libsensors-dev`
+
+To build on Arch Linux you can use the `PKGBUILD` file in the root of the repo.
+
 1. Clone repo.
 ```
 $ git clone https://github.com/KerJoe/ksystemstats_scripts.git
