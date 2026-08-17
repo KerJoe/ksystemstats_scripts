@@ -64,6 +64,7 @@ public:
 
 private:
     QProcess scriptProcess;
+    KSysGuard::SensorProperty* nameProp;
     QList<KSysGuard::SensorProperty*> sensors;
     QString scriptPath;
 

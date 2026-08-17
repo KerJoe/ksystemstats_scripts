@@ -80,8 +80,8 @@ Script::Script(const QString &scriptAbsPath, const QString &scriptRelPath, const
 
     qDebug() << "Script:" << this->id() << "Path:" << scriptPath;
 
-    auto n = new KSysGuard::SensorProperty("name", i18nc("@title", "Name"), this->name(), this);
-    n->setVariantType(QVariant::String);
+    nameProp = new KSysGuard::SensorProperty("name", i18nc("@title", "Name"), this->name(), this);
+    nameProp->setVariantType(QVariant::String);
 
     connect(&scriptProcess, &QProcess::readyReadStandardOutput, this, &Script::readyReadStandardOutput);
     connect(&scriptProcess, &QProcess::stateChanged, this, &Script::stateChanged);
