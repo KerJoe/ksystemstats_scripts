@@ -39,15 +39,16 @@ void ScriptsPlugin::initScripts()
         else // If reloading
             scripts[scriptRelPath]->restart();
     }
-    // Ignore deleted for now
-    //
-    // for (const auto& script : scripts.keys())
-    //     if (!addedScripts.contains(script))
-    //     {
-    //         qDebug() << "Deleting" << script;
-    //         delete scripts[script];
-    //         scripts.remove(script);
-    //     }
+    for (const auto& script : scripts.keys())
+        if (!addedScripts.contains(script))
+        {
+            qDebug() << "Script" << script << "has been deleted or disabled on disk";
+            // Don't actually delete scripts from KSysGuard
+            /*
+            delete scripts[script];
+            scripts.remove(script);
+            */
+        }
 }
 
 void ScriptsPlugin::deinitScripts()
@@ -93,6 +94,9 @@ Script::~Script()
     scriptProcess.close();
     if (initSensorAct) initSensorsH.destroy();
     if (updateSensorsAct) updateSensorsH.destroy();
+    qDeleteAll(sensors.begin(), sensors.end());
+    sensors.clear();
+    delete nameProp;
 }
 
 void Script::restart()
@@ -101,6 +105,8 @@ void Script::restart()
     if (initSensorAct) initSensorsH.destroy();
     if (updateSensorsAct) updateSensorsH.destroy();
     initSensorAct = false; updateSensorsAct = false;
+    qDeleteAll(sensors.begin(), sensors.end());
+    sensors.clear();
     scriptProcess.start(scriptPath, {});
 }
 
