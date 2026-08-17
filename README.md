@@ -12,7 +12,7 @@ Building and installation
 
 To build on Debian Trixie you will need to install these packages: `build-essential git cmake qt6-base-dev libkf6coreaddons-dev libkf6i18n-dev libksysguard-dev extra-cmake-modules libsensors-dev`
 
-To build on Arch Linux you can use the `PKGBUILD` file in the root of the repo.
+To build on Arch Linux you can use the `PKGBUILD` file in the root of this repo.
 
 1. Clone repo.
 ```
@@ -26,7 +26,7 @@ $ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -B build .
 $ cmake --build build
 ```
 
-3. Install into `/usr/lib/qt6/plugins/ksystemstats/`.
+3. Install into `/usr/lib/qt6/plugins/ksystemstats/` as root.
 ```
 # cmake --install build
 ```
@@ -39,7 +39,7 @@ $ systemctl --user restart plasma-ksystemstats.service
 Scripts folder
 --------------
 
-Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is created after first launch of the plugin). Adding scripts into subfolders is also supported. Scripts are enabled by setting the executable flag (`chmod +x script`) and disabled by removing it.
+Scripts should be added into `~/.local/share/ksystemstats-scripts/` folder (which is created after the first launch of the plugin). Adding scripts into subfolders is also supported. Scripts are enabled by setting the executable flag (`chmod +x script`) and are disabled by its removal.
 
 ```
 ~/.local/share/ksystemstats-scripts/
@@ -48,7 +48,7 @@ Scripts should be added into `~/.local/share/ksystemstats-scripts/` (which is cr
     └── example.py
 ```
 
-You can update script list and restart modified ones by "touching" the folder (`touch ~/.local/share/ksystemstats-scripts/`).
+You can update the script list and restart the modified scripts by "touching" the folder (`touch ~/.local/share/ksystemstats-scripts/`).
 
 **NOTE:** Some changes require refreshing the system sensor by, for example, changing the display style, adding/removing sensors or reopening the system monitor.
 
@@ -87,11 +87,11 @@ For extra examples see `examples/example.py` and `examples/example.sh`.
 Protocol
 --------
 
-The plugin communicates with scripts via stdin and stdout by issuing commands with arguments separated by tabs and ending in a newline, e.g. `"sensor_name\tvalue\n"`. All commands are optional.
+The plugin communicates with scripts via stdin and stdout by issuing commands with arguments separated by tabs and ending in a newline, e.g. `"sensor_name\tvalue\n"`. All commands are optional, except `?`.
 
 ### `?` command
 
-The plugins starts by requesting a list of sensors using a `"?"` command, the script should respond by a tab separated list of  all available sensors.
+The plugins starts by requesting a list of sensors using the `"?"` command, the script should respond by a tab separated list of all available sensors.
 
 ```
 > ?↵
@@ -183,7 +183,7 @@ A name of the unit of the sensor value.
 | A        | Ampere  (123 123 A)|
 
 ### `variant_type` command
-A name of QVariant type of sensor value.
+A name of QVariant type of sensor value (int, double, bool, QString, ...).
 ```
 > sensor_1⇥variant_type
 < double
