@@ -222,17 +222,6 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
                 unit = Str2Unit[sensorParameters["unit"]];
             sensor->setUnit(unit);
         }
-        if (sensorParameters["variant_type"] != "")
-        {
-            variant_type = QVariant::nameToType(sensorParameters["variant_type"].toLocal8Bit().constData());
-            sensor->setVariantType(variant_type);
-        }
-
-        // Implicitly convert QVariant to variant_type, because ksystemsensor seems to ignore setVariantType
-        QVariant value(sensorParameters["value"]);
-        if (!value.convert(variant_type))
-            qCritical() << "Script:" << this->id() << "Sensor:" << sensor->id() << "Value:" << sensorParameters["value"] << "can't be converted to" << variant_type;
-        sensor->setValue(value);
 
         sensors.append(sensor);
     }
