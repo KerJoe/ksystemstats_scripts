@@ -192,11 +192,23 @@ Coroutine Script::initSensors(std::coroutine_handle<> *h)
         for (const auto& sensorParameter : sensorParameters.keys())
             sensorParameters[sensorParameter] = co_await *r.request(sensorName, sensorParameter);
 
+        // The sensor's type follows its construction value: libksysguard drops
+        // setValue() before anyone subscribes, so the initial QVariant is what
+        // updateSensors() keeps converting to. Resolve variant_type first and
+        // hand the constructor an already-typed value, otherwise every reading
+        // stays a string and numeric faces have nothing to plot.
         auto variant_type = QVariant::String;
+        if (sensorParameters["variant_type"] != "")
+            variant_type = QVariant::nameToType(sensorParameters["variant_type"].toLocal8Bit().constData());
+
+        QVariant initialValue(sensorParameters["initial_value"]);
+        if (!initialValue.convert(variant_type))
+            qCritical() << "Script:" << this->id() << "Sensor:" << sensorName << "Initial value:" << sensorParameters["initial_value"] << "can't be converted to" << variant_type;
+
         auto sensor = new KSysGuard::SensorProperty(
             sensorName,
             sensorParameters["name"] == "" ? sensorName : sensorParameters["name"],
-            QVariant(sensorParameters["initial_value"]),
+            initialValue,
             this);
         if (sensorParameters["short_name"] != "") sensor->setShortName(sensorParameters["short_name"]);
         if (sensorParameters["prefix"] != "") sensor->setPrefix(sensorParameters["prefix"]);
